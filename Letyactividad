@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Memorama de Mantenimiento preventivo y correctivo</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+  }
+  .card {
+    width: 150px;
+    height: 150px;
+    margin: 10px;
+    display: inline-block;
+    perspective: 1000px;
+  }
+  .card-inner {
+    width: 100%;
+    height: 100%;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+    cursor: pointer;
+  }
+  .card.flipped .card-inner {
+    transform: rotateY(180deg);
+  }
+  .card-front, .card-back {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    backface-visibility: hidden;
+  }
+  .card-front {
+    background-color: #3498db;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .card-back {
+    background-color: #2ecc71;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform: rotateY(180deg);
+    padding: 10px;
+    overflow-y: auto;
+  }
+  .card-front, .card-back {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    backface-visibility: hidden;
+    font-size: 14px; /* Reducir el tamaño de la fuente */
+}
+
+.card-back {
+    padding: 5px; /* Ajustar el espaciado del texto */
+}
+
+  .matched {
+    background-color: #f39c12 !important;
+  }
+</style>
+
+</head>
+<body>
+<h1>Memorama de Mantenimiento preventivo y correctivo</h1>
+<hr><br>
+<div id="game-board">
+  <!-- Cards will be generated here -->
+</div>
+<div id="score">
+  <p>Aciertos: <span id="hits">0</span></p>
+  <p>Fallos: <span id="misses">0</span></p>
+</div>
+
+<script>
+  const maintenancePairs = [
+    { id: 1, concept: "Mantenimiento Preventivo", answer: "El mantenimiento preventivo es el destinado a la conservación de equipos o instalaciones mediante la realización de revisión y limpieza que garanticen su buen funcionamiento y fiabilidad. Se realiza en equipos en condiciones de funcionamiento." },
+    { id: 2, concept: "Mantenimiento Correctivo", answer: "El mantenimiento correctivo corrige los defectos observados en los equipamientos o instalaciones. Es la forma más básica de mantenimiento y consiste en localizar averías o defectos para corregirlos o repararlos." },
+    { id: 3, concept: "Diferencias entre mantenimiento preventivo y correctivo", answer: "El mantenimiento preventivo busca evitar fallas y problemas antes de que ocurran, mientras que el mantenimiento correctivo repara equipos después de que se haya producido una falla o avería." },
+    { id: 4, concept: "Mantenimiento Preventivo para Software", answer: "El mantenimiento preventivo en software se refiere a las actividades planificadas y proactivas realizadas en un sistema de software para evitar posibles problemas antes de que ocurran." },
+    { id: 5, concept: "Mantenimiento Correctivo para Software", answer: "El mantenimiento correctivo en software se refiere a las acciones realizadas para corregir problemas que surgen en un sistema de software después de su implementación." },
+    { id: 6, concept: "Mantenimiento Preventivo para Hardware", answer: "El mantenimiento preventivo para hardware implica acciones para prevenir el deterioro de los equipos físicos, como la limpieza regular y la actualización de software." },
+    { id: 7, concept: "Mantenimiento Correctivo para Hardware", answer: "El mantenimiento correctivo para hardware se refiere a las acciones tomadas para corregir problemas o fallas que surgen en los componentes físicos de un sistema." },
+    { id: 8, concept: "Mantenimiento Preventivo y Correctivo de TIC", answer: "El mantenimiento preventivo y correctivo de TIC implica acciones programadas para mantener el buen funcionamiento de los sistemas y reparar fallas cuando sea necesario." },
+    { id: 9, concept: "Mantenimiento Preventivo y Correctivo de Redes y Comunicaciones", answer: "El mantenimiento de redes y comunicaciones incluye acciones para mantener equipos de red, cableado y servicios de comunicación, tanto de manera preventiva como correctiva." },
+    { id: 10, concept: "Mantenimiento Preventivo y Correctivo de Sistemas de Información", answer: "El mantenimiento de sistemas de información abarca acciones para monitorear, actualizar y respaldar sistemas de información, tanto de manera preventiva como correctiva." }
+  ];
+
+  const gameBoard = document.getElementById("game-board");
+  const score = document.getElementById("score");
+  let flippedCards = [];
+  let hits = 0;
+  let misses = 0;
+
+  // Shuffle array function
+  function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
+
+  // Create memory cards
+  function createMemoryCards() {
+    const shuffledPairs = shuffleArray([...maintenancePairs, ...maintenancePairs]);
+    shuffledPairs.forEach(pair => {
+      const card = document.createElement("div");
+      card.classList.add("card");
+      card.innerHTML = `
+        <div class="card-inner">
+          <div class="card-front">${pair.concept}</div>
+          <div class="card-back">${pair.answer}</div>
+        </div>
+      `;
+      card.addEventListener("click", () => {
+        if (!card.classList.contains("flipped") && flippedCards.length < 2) {
+          card.classList.add("flipped");
+          flippedCards.push(card);
+          if (flippedCards.length === 2) {
+            checkForMatch();
+          }
+        }
+      });
+      gameBoard.appendChild(card);
+    });
+  }
+
+  // Check if flipped cards match
+  function checkForMatch() {
+    const [firstCard, secondCard] = flippedCards;
+    const firstCardContent = firstCard.querySelector(".card-back").textContent;
+    const secondCardContent = secondCard.querySelector(".card-back").textContent;
+    if (firstCardContent === secondCardContent) {
+      flippedCards.forEach(card => {
+        card.classList.add("matched");
+      });
+      flippedCards = [];
+      hits++;
+      score.querySelector("#hits").textContent = hits;
+    } else {
+      setTimeout(() => {
+        flippedCards.forEach(card => {
+          card.classList.remove("flipped");
+        });
+        flippedCards = [];
+        misses++;
+        score.querySelector("#misses").textContent = misses;
+      }, 1000);
+    }
+  }
+
+  createMemoryCards();
+</script>
+
+</body>
+</html>
